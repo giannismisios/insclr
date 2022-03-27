@@ -20,7 +20,7 @@ class BaseDataset(Dataset):
         label = 0
         to_label = {}
         for idx, line in enumerate(lines):
-            img, target = line.split(",")
+            img, target = line.split(",") #g: path, label = img, target
             if target not in to_label:
                 to_label[target] = label
                 label += 1
