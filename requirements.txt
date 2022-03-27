@@ -1,0 +1,7 @@
+tqdm
+yacs
+faiss-gpu
+tensorboardX
+scikit-learn
+pandas
+requests
