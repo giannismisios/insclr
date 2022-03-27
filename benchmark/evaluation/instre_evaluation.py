@@ -7,6 +7,7 @@ import scipy.io
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
+from benchmark.config import cfg   #g: added
 from benchmark.data.datasets import ImagesFromList
 from benchmark.utils.extract_fn import extract_features
 
@@ -88,16 +89,17 @@ class InstreEvaluator(ImageSearchEvaluator):
         
         if self.pca:
             for dim in self.pca_dims:
-                pca = PCA(dim, whiten=True)
-                pca.fit(index_features)
-                _query_features = pca.transform(query_features)
-                _index_features = pca.transform(index_features)
-                scores = np.dot(_query_features, _index_features.T)
-                ranks = np.argsort(-scores, axis=1).T
-                map, *_ = self.compute_map(ranks, gnd_t, [1, 5, 10])
-                res = {
-                    f"{self.dataset}/mAP (pca {dim})": np.around(map * 100, decimals=2),
-                }
-                msg += f"pca {dim}: {np.around(map * 100, decimals=2)}\n"
+                if dim <= cfg.MODEL.HEAD.OUT_DIM: #g: added
+                    pca = PCA(dim, whiten=True)
+                    pca.fit(index_features)
+                    _query_features = pca.transform(query_features)
+                    _index_features = pca.transform(index_features)
+                    scores = np.dot(_query_features, _index_features.T)
+                    ranks = np.argsort(-scores, axis=1).T
+                    map, *_ = self.compute_map(ranks, gnd_t, [1, 5, 10])
+                    res = {
+                        f"{self.dataset}/mAP (pca {dim})": np.around(map * 100, decimals=2),
+                    }
+                    msg += f"pca {dim}: {np.around(map * 100, decimals=2)}\n"
 
         return "\n" + msg, res
