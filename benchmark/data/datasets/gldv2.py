@@ -27,7 +27,7 @@ class GLDv2(Dataset):
             landmark, imgs = line.split(",")
             landmark = int(landmark)
             imgs = imgs.split()
-            if len(imgs) < 15:
+            if len(imgs) < 15: #g: explanation: uses only landmark_ids containing more thain 15 images
                 continue
             for img in imgs:
                 self.imgs.append(img)
