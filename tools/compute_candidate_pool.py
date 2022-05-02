@@ -28,10 +28,11 @@ def run(task, dataset, name):
             logger.info("convert head to identity")
             model.combiner.head = torch.nn.Identity()
         model.to(device)
-        if len(os.environ["CUDA_VISIBLE_DEVICES"].split(",")) > 1:
-            model = torch.nn.DataParallel(model)
+        '''if len(os.environ["CUDA_VISIBLE_DEVICES"].split(",")) > 1:
+            model = torch.nn.DataParallel(model)'''
 
-        dataloader = build_dataloader(cfg, dataset, mode="cpool")
+        #dataloader = build_dataloader(cfg, dataset, mode="cpool")
+        dataloader = build_dataloader(cfg, dataset, mode="cpool_aug")
         targets = copy.deepcopy(dataloader.dataset.labels)
         targets = np.array(targets)
         features = extract_features(dataloader, model, device, scales=SCALES)
@@ -57,6 +58,7 @@ def run(task, dataset, name):
 
         for i in tqdm(range(num_chunks)):
             mined_features = features[ranges[i]:ranges[i + 1]]
+            #TODO change topk=100 for CUB and CARS
             _neighbors = memory_bank.mine_nearest_neighbors(topk=500, features=mined_features)
             neighbors.append(_neighbors)
 
