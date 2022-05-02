@@ -210,7 +210,7 @@ class ResNet(nn.Module):
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
-        x = self.layer4(x)
+        #x = self.layer4(x) #dont need layer 4 for 2 branches
 
         return x
 
