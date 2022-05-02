@@ -34,11 +34,15 @@ class BaseDataset(Dataset):
         img = imread(path)
         label = self.labels[idx]
 
-        input = self.transform(img) if self.transform is not None else img
+        # Like TwoCropsTransform
+        input1= self.transform(img) if self.transform is not None else img
+        input2 = self.transform(img) if self.transform is not None else img
+        #input = self.transform(img) if self.transform is not None else img
         target = self.target_transform(label) \
             if self.target_transform is not None else label
 
-        res = {"input": input, "target": target, "idx": idx, "img": path.split("/")[-1]}
+       # res = {"input": input, "target": target, "idx": idx, "img": path.split("/")[-1]}
+        res = {"input": input1, "input2": input2, "target": target, "idx": idx, "img": path.split("/")[-1]}
         if self.noaug_transform is not None:
             noaug_input = self.noaug_transform(img)
             res["noaug_input"] = noaug_input
@@ -57,3 +61,5 @@ class BaseDataset(Dataset):
     @property
     def num_classes(self):
         return len(self.label_ind)
+
+
