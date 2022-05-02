@@ -2,14 +2,14 @@ import numpy as np
 from torch.utils.data import DataLoader
 import torchvision.transforms as T
 
-from .datasets import GLDv2, DatasetWithNeighbors, BaseDataset
+from .datasets import GLDv2, DatasetWithNeighbors, BaseDataset, CubDataset, CarsDataset #g: added CubDataset, CarsDataset
 from .samplers import RandomSampler
 from .collate_fn import collate_fn
 
 
 def build_dataloader(cfg, dataset="gldv2", mode="train"):
-    assert dataset in ["gldv2", "instre"]
-    assert mode in ["train", "test", "cpool"]
+    assert dataset in ["gldv2", "instre", "cub", "cars"]
+    assert mode in ["train", "test", "cpool", "cpool_aug"]
     if mode == "train":
         train_transform = T.Compose([
             T.RandomResizedCrop(
@@ -34,6 +34,16 @@ def build_dataloader(cfg, dataset="gldv2", mode="train"):
         if dataset == "gldv2":
             dataset = GLDv2(
                 root="datasets/gldv2", fname="train_clean.csv",
+                transform=train_transform, target_transform=None, noaug_transform=noaug_transform
+            )
+        elif dataset == "cub":  #g: added
+            dataset = CubDataset(
+                cfg.DATA.ROOT, fname=cfg.DATA.TRAIN_FILENAME,
+                transform=train_transform, target_transform=None, noaug_transform=noaug_transform
+            )
+        elif dataset == "cars":  #g: added
+            dataset = CarsDataset(
+                cfg.DATA.ROOT, fname=cfg.DATA.TRAIN_FILENAME,
                 transform=train_transform, target_transform=None, noaug_transform=noaug_transform
             )
         else:
@@ -62,6 +72,25 @@ def build_dataloader(cfg, dataset="gldv2", mode="train"):
         )
 
         return train_loader
+    elif mode =="cpool_aug":
+        test_transform = T.Compose([
+            T.RandomResizedCrop(
+                cfg.INPUT.TRAIN_IMG_SIZE,
+                scale=(cfg.INPUT.SCALE_LOWER, cfg.INPUT.SCALE_UPPER), ratio=(0.75, 1.33)
+            ),
+            T.RandomHorizontalFlip(),
+            T.ToTensor(),
+            T.Normalize(mean=cfg.INPUT.PIXEL_MEAN, std=cfg.INPUT.PIXEL_STD)
+        ])
+
+        dataset = BaseDataset(
+            cfg.DATA.ROOT, fname=cfg.DATA.TEST_FILENAME if mode == "test" else cfg.DATA.TRAIN_FILENAME,
+            transform=test_transform, target_transform=None, noaug_transform=None
+        )
+
+        test_loader = DataLoader(dataset, batch_size=128, shuffle=False,
+                                 num_workers=2, pin_memory=True, drop_last=False)
+        return test_loader
     else:
         test_transform = T.Compose([
             T.Resize(size=cfg.INPUT.TEST_IMG_SIZE),
@@ -74,6 +103,16 @@ def build_dataloader(cfg, dataset="gldv2", mode="train"):
                 root="datasets/gldv2", fname="train_clean.csv",
                 transform=test_transform, target_transform=None, noaug_transform=None
             )
+        elif dataset == "cub":
+            dataset = CubDataset(
+                cfg.DATA.ROOT, fname=cfg.DATA.TRAIN_FILENAME,
+                transform=test_transform, target_transform=None, noaug_transform=None
+        )
+        elif dataset == "cars":
+            dataset = CarsDataset(
+                cfg.DATA.ROOT, fname=cfg.DATA.TRAIN_FILENAME,
+                transform=test_transform, target_transform=None, noaug_transform=None
+        )
         else:
             dataset = BaseDataset(
                 cfg.DATA.ROOT, fname=cfg.DATA.TEST_FILENAME if mode == "test" else cfg.DATA.TRAIN_FILENAME,
@@ -105,6 +144,16 @@ def build_xbm_dataloader(cfg):
     if dataset == "gldv2":
         dataset = GLDv2(
             root="datasets/gldv2", fname="train_clean.csv",
+            transform=aug_transform, target_transform=None, noaug_transform=noaug_transform
+        )
+    elif dataset == "cub":
+        dataset = CubDataset(
+            cfg.DATA.ROOT, fname=cfg.DATA.TRAIN_FILENAME,
+            transform=aug_transform, target_transform=None, noaug_transform=noaug_transform
+        )
+    elif dataset == "cars":
+        dataset = CarsDataset(
+            cfg.DATA.ROOT, fname=cfg.DATA.TRAIN_FILENAME,
             transform=aug_transform, target_transform=None, noaug_transform=noaug_transform
         )
     else:
